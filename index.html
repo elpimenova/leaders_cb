@@ -7,8 +7,7 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F3F4F6; }
-  :root { --orange: #FF5800; }
-  .card { background: white; border-radius: 14px; border: 2px solid #E5E7EB; padding: 20px 24px; transition: all 0.15s; text-decoration: none; display: block; }
+  .card { background: white; border-radius: 14px; border: 2px solid #E5E7EB; padding: 20px 24px; transition: all 0.15s; text-decoration: none; display: block; color: inherit; }
   .card:hover { border-color: #FF5800; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,88,0,0.1); }
   .card.tool { border-color: #FF5800; background: #FFF7F3; }
   .card.tool:hover { box-shadow: 0 6px 20px rgba(255,88,0,0.2); }
@@ -18,7 +17,6 @@
 <body class="min-h-screen py-10 px-4">
 <div class="max-w-2xl mx-auto">
 
-  <!-- Header -->
   <div class="mb-8">
     <div class="flex items-center gap-3 mb-3">
       <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-lg" style="background:#FF5800">L</div>
@@ -32,7 +30,6 @@
     </p>
   </div>
 
-  <!-- Tools — интерактивные HTML -->
   <div class="mb-6">
     <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Интерактивные инструменты</p>
     <div class="grid gap-3">
@@ -82,95 +79,69 @@
     </div>
   </div>
 
-  <!-- Docs — гайды в репо -->
   <div class="mb-6">
     <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Гайды и документы</p>
     <div class="grid gap-2">
 
       <a href="https://github.com/elpimenova/leaders_cb/blob/main/Leaders%C3%97CB_%D0%9E%D0%B4%D0%BD%D0%BE%D1%81%D1%82%D1%80%D0%B0%D0%BD%D0%B8%D1%87%D0%BD%D0%B8%D0%BA.md" target="_blank" class="card">
         <div class="flex items-center justify-between">
-          <div>
-            <div class="flex items-center gap-2 mb-0.5">
-              <span class="tag bg-gray-100 text-gray-600">Обзор</span>
-            </div>
+          <div><span class="tag bg-gray-100 text-gray-600 mb-1">Обзор</span>
             <h3 class="font-medium text-gray-900">Одностраничник программы</h3>
             <p class="text-sm text-gray-400">Карта на 90 дней, аудитории, guard-rail рамка</p>
-          </div>
-          <span class="text-gray-300 ml-3">↗</span>
+          </div><span class="text-gray-300 ml-3">↗</span>
         </div>
       </a>
 
       <a href="https://github.com/elpimenova/leaders_cb/blob/main/Leaders%C3%97CB_Welcome-%D0%BA%D0%BE%D0%BC%D0%BF%D0%BB%D0%B5%D0%BA%D1%82.md" target="_blank" class="card">
         <div class="flex items-center justify-between">
-          <div>
-            <div class="flex items-center gap-2 mb-0.5">
-              <span class="tag bg-gray-100 text-gray-600">M0.1</span>
-            </div>
+          <div><span class="tag bg-gray-100 text-gray-600 mb-1">M0.1</span>
             <h3 class="font-medium text-gray-900">Welcome-комплект</h3>
             <p class="text-sm text-gray-400">Первый документ нового лидера · карта стейкхолдеров · 5 запрещённых фраз</p>
-          </div>
-          <span class="text-gray-300 ml-3">↗</span>
+          </div><span class="text-gray-300 ml-3">↗</span>
         </div>
       </a>
 
       <a href="https://github.com/elpimenova/leaders_cb/blob/main/Leaders%C3%97CB_%D0%9C%D0%B8%D0%BA%D1%80%D0%BE%D0%BA%D1%83%D1%80%D1%81-Dodo-Review.md" target="_blank" class="card">
         <div class="flex items-center justify-between">
-          <div>
-            <div class="flex items-center gap-2 mb-0.5">
-              <span class="tag bg-gray-100 text-gray-600">M0.2</span>
-            </div>
+          <div><span class="tag bg-gray-100 text-gray-600 mb-1">M0.2</span>
             <h3 class="font-medium text-gray-900">Микрокурс: Dodo Review</h3>
-            <p class="text-sm text-gray-400">Что влияет на ЗП · калибровка · диалоги до/после · самопроверка</p>
-          </div>
-          <span class="text-gray-300 ml-3">↗</span>
+            <p class="text-sm text-gray-400">Что влияет на ЗП · калибровка · диалоги · самопроверка</p>
+          </div><span class="text-gray-300 ml-3">↗</span>
         </div>
       </a>
 
       <a href="https://github.com/elpimenova/leaders_cb/blob/main/Leaders%C3%97CB_%D0%93%D0%B0%D0%B9%D0%B4-%D0%97%D0%9F-%D1%86%D0%B8%D0%BA%D0%BB.md" target="_blank" class="card">
         <div class="flex items-center justify-between">
-          <div>
-            <div class="flex items-center gap-2 mb-0.5">
-              <span class="tag bg-gray-100 text-gray-600">M0.3</span>
-            </div>
+          <div><span class="tag bg-gray-100 text-gray-600 mb-1">M0.3</span>
             <h3 class="font-medium text-gray-900">Гайд по ЗП-циклу</h3>
             <p class="text-sm text-gray-400">CR и вилки · кого повышать первым · алгоритм контр-оффера</p>
-          </div>
-          <span class="text-gray-300 ml-3">↗</span>
+          </div><span class="text-gray-300 ml-3">↗</span>
         </div>
       </a>
 
       <a href="https://github.com/elpimenova/leaders_cb/blob/main/Leaders%C3%97CB_%D0%9F%D0%B0%D0%BA%D0%B5%D1%82-HRBP.md" target="_blank" class="card">
         <div class="flex items-center justify-between">
-          <div>
-            <div class="flex items-center gap-2 mb-0.5">
-              <span class="tag bg-gray-100 text-gray-600">HRBP</span>
-            </div>
+          <div><span class="tag bg-gray-100 text-gray-600 mb-1">HRBP</span>
             <h3 class="font-medium text-gray-900">Пакет для HRBP</h3>
             <p class="text-sm text-gray-400">Чек-лист 30/60/90 · шпаргалка эскалации · маршрутизатор кейсов</p>
-          </div>
-          <span class="text-gray-300 ml-3">↗</span>
+          </div><span class="text-gray-300 ml-3">↗</span>
         </div>
       </a>
 
       <a href="https://github.com/elpimenova/leaders_cb/blob/main/Leaders%C3%97CB_%D0%9C%D0%B5%D1%82%D1%80%D0%B8%D0%BA%D0%B8-%D0%B8-DoD.md" target="_blank" class="card">
         <div class="flex items-center justify-between">
-          <div>
-            <div class="flex items-center gap-2 mb-0.5">
-              <span class="tag bg-gray-100 text-gray-600">Метрики</span>
-            </div>
+          <div><span class="tag bg-gray-100 text-gray-600 mb-1">Метрики</span>
             <h3 class="font-medium text-gray-900">Метрики и DoD</h3>
-            <p class="text-sm text-gray-400">5 метрик успеха · методы замера · шаблон отчёта руководству · условия закрытия</p>
-          </div>
-          <span class="text-gray-300 ml-3">↗</span>
+            <p class="text-sm text-gray-400">5 метрик · методы замера · шаблон отчёта · условия закрытия</p>
+          </div><span class="text-gray-300 ml-3">↗</span>
         </div>
       </a>
 
     </div>
   </div>
 
-  <!-- Footer -->
   <p class="text-center text-xs text-gray-400">
-    Leaders × C&B · Dodo Brands · 
+    Leaders × C&B · Dodo Brands ·
     <a href="https://github.com/elpimenova/leaders_cb" class="hover:text-gray-600 transition" target="_blank">github.com/elpimenova/leaders_cb</a>
   </p>
 
