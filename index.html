@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leaders × C&B · Программа Dodo Brands</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F3F4F6; }
+  :root { --orange: #FF5800; }
+  .card { background: white; border-radius: 14px; border: 2px solid #E5E7EB; padding: 20px 24px; transition: all 0.15s; text-decoration: none; display: block; }
+  .card:hover { border-color: #FF5800; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,88,0,0.1); }
+  .card.tool { border-color: #FF5800; background: #FFF7F3; }
+  .card.tool:hover { box-shadow: 0 6px 20px rgba(255,88,0,0.2); }
+  .tag { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+</style>
+</head>
+<body class="min-h-screen py-10 px-4">
+<div class="max-w-2xl mx-auto">
+
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex items-center gap-3 mb-3">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-lg" style="background:#FF5800">L</div>
+      <div>
+        <h1 class="text-xl font-bold text-gray-900">Leaders × C&B</h1>
+        <p class="text-sm text-gray-500">Программа обучения лидеров · Dodo Brands</p>
+      </div>
+    </div>
+    <p class="text-sm text-gray-500 bg-white rounded-xl p-3 border border-gray-200">
+      Учит лидеров проводить сложные разговоры про Dodo Review, зарплатный цикл и совокупный доход — без лишних обещаний и без перекладывания на HRBP.
+    </p>
+  </div>
+
+  <!-- Tools — интерактивные HTML -->
+  <div class="mb-6">
+    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Интерактивные инструменты</p>
+    <div class="grid gap-3">
+
+      <a href="trainer.html" class="card tool">
+        <div class="flex items-start justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="tag" style="background:#FFF0E8;color:#FF5800">M0.5</span>
+              <span class="tag bg-orange-100 text-orange-700">8 сценариев</span>
+            </div>
+            <h3 class="font-semibold text-gray-900">Тренажёр диалогов</h3>
+            <p class="text-sm text-gray-500 mt-1">Ветвящиеся диалоги с разбором ошибок. Начни с S2 — «Почему мне 3%, а Маше 10%?»</p>
+          </div>
+          <span class="text-2xl ml-3 mt-1">💬</span>
+        </div>
+      </a>
+
+      <a href="calculator.html" class="card tool">
+        <div class="flex items-start justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="tag" style="background:#FFF0E8;color:#FF5800">M0.4</span>
+              <span class="tag bg-orange-100 text-orange-700">Total Rewards</span>
+            </div>
+            <h3 class="font-semibold text-gray-900">Калькулятор совокупного дохода</h3>
+            <p class="text-sm text-gray-500 mt-1">Сравни оклад + бенефиты в Dodo vs внешний оффер. Открывай на встрече с сотрудником.</p>
+          </div>
+          <span class="text-2xl ml-3 mt-1">🧮</span>
+        </div>
+      </a>
+
+      <a href="dashboard.html" class="card tool">
+        <div class="flex items-start justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="tag" style="background:#FFF0E8;color:#FF5800">HRBP</span>
+              <span class="tag bg-orange-100 text-orange-700">метрики</span>
+            </div>
+            <h3 class="font-semibold text-gray-900">Дашборд программы</h3>
+            <p class="text-sm text-gray-500 mt-1">Прогресс по 5 метрикам DoD. Обновляется вручную, хранит данные в браузере.</p>
+          </div>
+          <span class="text-2xl ml-3 mt-1">📊</span>
+        </div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- Docs — гайды в репо -->
+  <div class="mb-6">
+    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-3">Гайды и документы</p>
+    <div class="grid gap-2">
+
+      <a href="https://github.com/elpimenova/leaders_cb/blob/main/Leaders%C3%97CB_%D0%9E%D0%B4%D0%BD%D0%BE%D1%81%D1%82%D1%80%D0%B0%D0%BD%D0%B8%D1%87%D0%BD%D0%B8%D0%BA.md" target="_blank" class="card">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-0.5">
+              <span class="tag bg-gray-100 text-gray-600">Обзор</span>
+            </div>
+            <h3 class="font-medium text-gray-900">Одностраничник программы</h3>
+            <p class="text-sm text-gray-400">Карта на 90 дней, аудитории, guard-rail рамка</p>
+          </div>
+          <span class="text-gray-300 ml-3">↗</span>
+        </div>
+      </a>
+
+      <a href="https://github.com/elpimenova/leaders_cb/blob/main/Leaders%C3%97CB_Welcome-%D0%BA%D0%BE%D0%BC%D0%BF%D0%BB%D0%B5%D0%BA%D1%82.md" target="_blank" class="card">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-0.5">
+              <span class="tag bg-gray-100 text-gray-600">M0.1</span>
+            </div>
+            <h3 class="font-medium text-gray-900">Welcome-комплект</h3>
+            <p class="text-sm text-gray-400">Первый документ нового лидера · карта стейкхолдеров · 5 запрещённых фраз</p>
+          </div>
+          <span class="text-gray-300 ml-3">↗</span>
+        </div>
+      </a>
+
+      <a href="https://github.com/elpimenova/leaders_cb/blob/main/Leaders%C3%97CB_%D0%9C%D0%B8%D0%BA%D1%80%D0%BE%D0%BA%D1%83%D1%80%D1%81-Dodo-Review.md" target="_blank" class="card">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-0.5">
+              <span class="tag bg-gray-100 text-gray-600">M0.2</span>
+            </div>
+            <h3 class="font-medium text-gray-900">Микрокурс: Dodo Review</h3>
+            <p class="text-sm text-gray-400">Что влияет на ЗП · калибровка · диалоги до/после · самопроверка</p>
+          </div>
+          <span class="text-gray-300 ml-3">↗</span>
+        </div>
+      </a>
+
+      <a href="https://github.com/elpimenova/leaders_cb/blob/main/Leaders%C3%97CB_%D0%93%D0%B0%D0%B9%D0%B4-%D0%97%D0%9F-%D1%86%D0%B8%D0%BA%D0%BB.md" target="_blank" class="card">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-0.5">
+              <span class="tag bg-gray-100 text-gray-600">M0.3</span>
+            </div>
+            <h3 class="font-medium text-gray-900">Гайд по ЗП-циклу</h3>
+            <p class="text-sm text-gray-400">CR и вилки · кого повышать первым · алгоритм контр-оффера</p>
+          </div>
+          <span class="text-gray-300 ml-3">↗</span>
+        </div>
+      </a>
+
+      <a href="https://github.com/elpimenova/leaders_cb/blob/main/Leaders%C3%97CB_%D0%9F%D0%B0%D0%BA%D0%B5%D1%82-HRBP.md" target="_blank" class="card">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-0.5">
+              <span class="tag bg-gray-100 text-gray-600">HRBP</span>
+            </div>
+            <h3 class="font-medium text-gray-900">Пакет для HRBP</h3>
+            <p class="text-sm text-gray-400">Чек-лист 30/60/90 · шпаргалка эскалации · маршрутизатор кейсов</p>
+          </div>
+          <span class="text-gray-300 ml-3">↗</span>
+        </div>
+      </a>
+
+      <a href="https://github.com/elpimenova/leaders_cb/blob/main/Leaders%C3%97CB_%D0%9C%D0%B5%D1%82%D1%80%D0%B8%D0%BA%D0%B8-%D0%B8-DoD.md" target="_blank" class="card">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="flex items-center gap-2 mb-0.5">
+              <span class="tag bg-gray-100 text-gray-600">Метрики</span>
+            </div>
+            <h3 class="font-medium text-gray-900">Метрики и DoD</h3>
+            <p class="text-sm text-gray-400">5 метрик успеха · методы замера · шаблон отчёта руководству · условия закрытия</p>
+          </div>
+          <span class="text-gray-300 ml-3">↗</span>
+        </div>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <p class="text-center text-xs text-gray-400">
+    Leaders × C&B · Dodo Brands · 
+    <a href="https://github.com/elpimenova/leaders_cb" class="hover:text-gray-600 transition" target="_blank">github.com/elpimenova/leaders_cb</a>
+  </p>
+
+</div>
+</body>
+</html>
