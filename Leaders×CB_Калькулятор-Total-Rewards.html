@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Total Rewards Calculator · Dodo Brands</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  /*
+  ============================================================
+  PLACEHOLDERS — цифры нужно подтвердить с C&B
+  ============================================================
+  BENEFIT_DMC          = 100000  (₽/год, ДМС АльфаСтрахование)
+  BENEFIT_ALTER        = 24000   (₽/год, 2000₽ × 12 сессий)
+  BENEFIT_SKYENG       = 30000   (₽/год, 50% co-pay)
+  BENEFIT_PARKING      = 60000   (₽/год, Омега Плаза)
+  BENEFIT_FITSTAR      = 18000   (₽/год, FitStars — PLACEHOLDER)
+  BENEFIT_BESTBENEFITS = 12000   (₽/год, BestBenefits — PLACEHOLDER)
+  OPTION_PRICE         = 0       (₽/юнит, текущая оценка — PLACEHOLDER)
+  GRADE_LEVELS         = D3..D12 (шкала грейдов — PLACEHOLDER: уточнить реальную)
+  NDFL_RATE            = 0.13    (стандартная ставка НДФЛ — проверить актуальность)
+  ============================================================
+  */
+
+  :root {
+    --dodo-orange: #FF5800;
+    --dodo-dark: #1A1A1A;
+    --dodo-gray: #6B7280;
+    --dodo-light: #F9FAFB;
+    --dodo-border: #E5E7EB;
+  }
+
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #F3F4F6; }
+
+  .orange-accent { color: var(--dodo-orange); }
+  .input-field {
+    width: 100%;
+    border: 1px solid var(--dodo-border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 14px;
+    transition: border-color 0.15s;
+    background: white;
+  }
+  .input-field:focus { outline: none; border-color: var(--dodo-orange); box-shadow: 0 0 0 2px rgba(255,88,0,0.1); }
+  .section-card { background: white; border-radius: 12px; padding: 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.07); }
+  .label { font-size: 13px; color: var(--dodo-gray); font-weight: 500; margin-bottom: 4px; display: block; }
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #F3F4F6; }
+  .toggle-row:last-child { border-bottom: none; }
+  .toggle { position: relative; display: inline-block; width: 38px; height: 22px; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .slider { position: absolute; cursor: pointer; inset: 0; background: #D1D5DB; border-radius: 22px; transition: .2s; }
+  .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: .2s; }
+  input:checked + .slider { background: var(--dodo-orange); }
+  input:checked + .slider:before { transform: translateX(16px); }
+  .benefit-value { font-size: 13px; color: var(--dodo-gray); }
+  .result-positive { color: #059669; }
+  .result-negative { color: #DC2626; }
+  .result-neutral { color: var(--dodo-gray); }
+  .big-number { font-size: 28px; font-weight: 700; line-height: 1.1; }
+  .section-title { font-size: 15px; font-weight: 600; color: var(--dodo-dark); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .section-title .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+  @media print {
+    body { background: white; }
+    .no-print { display: none !important; }
+    .section-card { box-shadow: none; border: 1px solid #E5E7EB; }
+    #placeholder-warning { display: block !important; }
+  }
+</style>
+</head>
+<body class="min-h-screen py-6 px-4">
+
+<!-- PLACEHOLDER WARNING -->
+<div id="placeholder-warning" class="max-w-5xl mx-auto mb-5 bg-yellow-50 border-2 border-yellow-400 rounded-xl p-4">
+  <div class="flex gap-3 items-start">
+    <span class="text-yellow-500 text-xl mt-0.5">⚠️</span>
+    <div>
+      <p class="font-semibold text-yellow-800 text-sm">[PLACEHOLDER] Цифры бенефитов и грейды нужно подтвердить с C&B перед использованием.</p>
+      <p class="text-yellow-700 text-sm mt-1">Текущие значения — для демонстрации логики, не для реальных разговоров. Все суммы бенефитов помечены как приблизительные.</p>
+    </div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="max-w-5xl mx-auto mb-5">
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Калькулятор Total Rewards</h1>
+      <p class="text-sm text-gray-500 mt-1">Сравни совокупный доход в Dodo и внешний оффер</p>
+    </div>
+    <button onclick="window.print()" class="no-print flex items-center gap-2 bg-gray-900 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-gray-700 transition">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+      Сохранить как PDF
+    </button>
+  </div>
+</div>
+
+<!-- SALARY TYPE TOGGLE -->
+<div class="max-w-5xl mx-auto mb-4">
+  <div class="section-card flex items-center gap-4 py-3">
+    <span class="text-sm font-medium text-gray-700">Тип ввода зарплат:</span>
+    <div class="flex bg-gray-100 rounded-lg p-1 gap-1">
+      <button id="btn-gross" onclick="setSalaryType('gross')" class="px-3 py-1 rounded-md text-sm font-medium transition bg-white shadow text-gray-900">Gross (до налогов)</button>
+      <button id="btn-net" onclick="setSalaryType('net')" class="px-3 py-1 rounded-md text-sm font-medium transition text-gray-500">Нетто (на руки)</button>
+    </div>
+    <span id="salary-type-hint" class="text-xs text-gray-400">Все суммы в расчёте — gross</span>
+  </div>
+</div>
+
+<!-- TWO COLUMNS -->
+<div class="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+
+  <!-- LEFT: DODO -->
+  <div class="section-card">
+    <div class="section-title">
+      <div class="dot" style="background: var(--dodo-orange)"></div>
+      Текущая ситуация в Dodo
+    </div>
+
+    <!-- Грейд -->
+    <div class="mb-4">
+      <label class="label">Грейд сотрудника <span class="text-yellow-600 text-xs">[PLACEHOLDER: шкала]</span></label>
+      <select id="dodo-grade" onchange="calc()" class="input-field">
+        <option value="">— не выбран —</option>
+        <option value="D3">D3</option>
+        <option value="D4">D4</option>
+        <option value="D5">D5</option>
+        <option value="D6">D6</option>
+        <option value="D7">D7</option>
+        <option value="D8">D8</option>
+        <option value="D9">D9</option>
+        <option value="D10">D10</option>
+        <option value="D11">D11</option>
+        <option value="D12">D12</option>
+      </select>
+    </div>
+
+    <!-- Оклад -->
+    <div class="mb-4">
+      <label class="label">Оклад в месяц, ₽</label>
+      <input type="number" id="dodo-salary" class="input-field" placeholder="например, 200 000" oninput="calc()">
+    </div>
+
+    <!-- Премии -->
+    <div class="mb-4">
+      <label class="label">Премии за год, ₽ <span class="text-xs text-gray-400">(плановые + годовая)</span></label>
+      <input type="number" id="dodo-bonus" class="input-field" placeholder="например, 200 000" oninput="calc()">
+    </div>
+
+    <!-- Опционы -->
+    <div class="mb-4">
+      <label class="label">Опционы <span class="text-yellow-600 text-xs">[PLACEHOLDER: цена юнита]</span></label>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <span class="label text-xs">Количество юнитов</span>
+          <input type="number" id="dodo-options-qty" class="input-field" placeholder="0" oninput="calc()">
+        </div>
+        <div>
+          <span class="label text-xs">Оценка 1 юнита, ₽</span>
+          <input type="number" id="dodo-options-price" class="input-field" placeholder="[PLACEHOLDER]" oninput="calc()">
+        </div>
+      </div>
+    </div>
+
+    <!-- Бенефиты -->
+    <div class="mb-2">
+      <p class="label mb-3">Бенефиты <span class="text-xs text-gray-400">(включить в расчёт)</span></p>
+
+      <div class="toggle-row">
+        <div>
+          <span class="text-sm text-gray-800">ДМС (АльфаСтрахование)</span>
+          <span class="benefit-value ml-2">≈ 100 000 ₽/год</span>
+        </div>
+        <label class="toggle"><input type="checkbox" id="dodo-dmc" onchange="calc()"><span class="slider"></span></label>
+      </div>
+
+      <div class="toggle-row">
+        <div>
+          <span class="text-sm text-gray-800">Психолог Alter</span>
+          <span class="benefit-value ml-2">≈ 24 000 ₽/год</span>
+        </div>
+        <label class="toggle"><input type="checkbox" id="dodo-alter" onchange="calc()"><span class="slider"></span></label>
+      </div>
+
+      <div class="toggle-row">
+        <div>
+          <span class="text-sm text-gray-800">Английский Skyeng (50% co-pay)</span>
+          <span class="benefit-value ml-2">≈ 30 000 ₽/год</span>
+        </div>
+        <label class="toggle"><input type="checkbox" id="dodo-skyeng" onchange="calc()"><span class="slider"></span></label>
+      </div>
+
+      <div class="toggle-row">
+        <div>
+          <span class="text-sm text-gray-800">Парковка (Омега Плаза)</span>
+          <span class="benefit-value ml-2">≈ 60 000 ₽/год</span>
+        </div>
+        <label class="toggle"><input type="checkbox" id="dodo-parking" onchange="calc()"><span class="slider"></span></label>
+      </div>
+
+      <div class="toggle-row">
+        <div>
+          <span class="text-sm text-gray-800">FitStars (спорт)</span>
+          <span class="benefit-value ml-2">≈ 18 000 ₽/год</span>
+        </div>
+        <label class="toggle"><input type="checkbox" id="dodo-fitstar" onchange="calc()"><span class="slider"></span></label>
+      </div>
+
+      <div class="toggle-row">
+        <div>
+          <span class="text-sm text-gray-800">BestBenefits</span>
+          <span class="benefit-value ml-2">≈ 12 000 ₽/год</span>
+        </div>
+        <label class="toggle"><input type="checkbox" id="dodo-bestben" onchange="calc()"><span class="slider"></span></label>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- RIGHT: EXTERNAL OFFER -->
+  <div class="section-card">
+    <div class="section-title">
+      <div class="dot" style="background: #6B7280"></div>
+      Внешний оффер
+    </div>
+
+    <!-- Оклад -->
+    <div class="mb-4">
+      <label class="label">Оклад в месяц, ₽</label>
+      <input type="number" id="ext-salary" class="input-field" placeholder="например, 230 000" oninput="calc()">
+    </div>
+
+    <!-- Премии -->
+    <div class="mb-4">
+      <label class="label">Премии за год, ₽</label>
+      <input type="number" id="ext-bonus" class="input-field" placeholder="0 если не известно" oninput="calc()">
+    </div>
+
+    <!-- Бенефиты известны? -->
+    <div class="mb-4">
+      <div class="flex items-center gap-3">
+        <label class="toggle"><input type="checkbox" id="ext-benefits-known" onchange="toggleExtBenefits()"><span class="slider"></span></label>
+        <span class="text-sm text-gray-700">Бенефиты у них тоже известны</span>
+      </div>
+    </div>
+
+    <!-- Скрытый блок бенефитов оффера -->
+    <div id="ext-benefits-block" class="hidden">
+      <p class="label mb-3">Бенефиты внешнего оффера</p>
+
+      <div class="toggle-row">
+        <div>
+          <span class="text-sm text-gray-800">ДМС</span>
+          <div class="mt-1"><input type="number" id="ext-dmc" class="input-field" style="width:140px" placeholder="сумма/год ₽" oninput="calc()"></div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="ext-dmc-on" onchange="calc()"><span class="slider"></span></label>
+      </div>
+
+      <div class="toggle-row">
+        <div>
+          <span class="text-sm text-gray-800">Психолог / wellbeing</span>
+          <div class="mt-1"><input type="number" id="ext-psych" class="input-field" style="width:140px" placeholder="сумма/год ₽" oninput="calc()"></div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="ext-psych-on" onchange="calc()"><span class="slider"></span></label>
+      </div>
+
+      <div class="toggle-row">
+        <div>
+          <span class="text-sm text-gray-800">Спорт / фитнес</span>
+          <div class="mt-1"><input type="number" id="ext-sport" class="input-field" style="width:140px" placeholder="сумма/год ₽" oninput="calc()"></div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="ext-sport-on" onchange="calc()"><span class="slider"></span></label>
+      </div>
+
+      <div class="toggle-row">
+        <div>
+          <span class="text-sm text-gray-800">Обучение</span>
+          <div class="mt-1"><input type="number" id="ext-learning" class="input-field" style="width:140px" placeholder="сумма/год ₽" oninput="calc()"></div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="ext-learning-on" onchange="calc()"><span class="slider"></span></label>
+      </div>
+
+      <div class="toggle-row">
+        <div>
+          <span class="text-sm text-gray-800">Другие бенефиты</span>
+          <div class="mt-1"><input type="number" id="ext-other" class="input-field" style="width:140px" placeholder="сумма/год ₽" oninput="calc()"></div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="ext-other-on" onchange="calc()"><span class="slider"></span></label>
+      </div>
+    </div>
+
+    <!-- Пояснение если бенефиты не введены -->
+    <div id="ext-benefits-hint" class="mt-4 p-3 bg-gray-50 rounded-lg">
+      <p class="text-xs text-gray-500">Бенефиты внешнего оффера не указаны — итоговая сумма будет неполной. Для честного сравнения стоит уточнить условия у сотрудника.</p>
+    </div>
+
+  </div>
+</div>
+
+<!-- RESULT BLOCK -->
+<div class="max-w-5xl mx-auto mb-5">
+  <div id="result-block" class="section-card">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+
+      <div class="text-center">
+        <p class="text-sm font-medium text-gray-500 mb-1">Совокупный доход в Dodo</p>
+        <p class="big-number orange-accent" id="result-dodo">—</p>
+        <p class="text-xs text-gray-400 mt-1" id="result-dodo-sub"></p>
+      </div>
+
+      <div class="text-center">
+        <p class="text-xs text-gray-400 mb-2">Разница</p>
+        <div id="result-diff-block" class="text-center">
+          <p class="text-4xl font-bold" id="result-diff">—</p>
+          <p class="text-sm mt-1" id="result-diff-label"></p>
+        </div>
+      </div>
+
+      <div class="text-center">
+        <p class="text-sm font-medium text-gray-500 mb-1">Совокупный доход во внешнем</p>
+        <p class="big-number text-gray-700" id="result-ext">—</p>
+        <p class="text-xs text-gray-400 mt-1" id="result-ext-sub"></p>
+      </div>
+
+    </div>
+
+    <!-- Вывод одной строкой -->
+    <div class="mt-5 p-4 rounded-xl text-center" id="result-conclusion" style="background: #F9FAFB;">
+      <p class="text-sm font-medium text-gray-500">Заполни поля выше для сравнения</p>
+    </div>
+  </div>
+</div>
+
+<!-- REFERENCE BLOCK -->
+<div class="max-w-5xl mx-auto mb-8">
+  <div class="section-card">
+    <h3 class="font-semibold text-gray-800 mb-4 text-sm">Откуда берутся эти цифры</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-gray-600">
+      <div class="p-3 bg-gray-50 rounded-lg">
+        <span class="font-medium text-gray-800">ДМС (АльфаСтрахование)</span><br>
+        Полис добровольного медицинского страхования. Стоимость ≈ 100 000 ₽/год. <span class="text-yellow-600">[PLACEHOLDER — уточнить у C&B]</span>
+        <div class="text-xs text-gray-400 mt-1">Источник: LDR-BEN-00</div>
+      </div>
+      <div class="p-3 bg-gray-50 rounded-lg">
+        <span class="font-medium text-gray-800">Психологическая поддержка Alter</span><br>
+        Компенсация 2 000 ₽ за сессию, количество сессий не ограничено. В расчёте — 12 сессий в год = 24 000 ₽. <span class="text-yellow-600">[PLACEHOLDER — проверить лимит]</span>
+        <div class="text-xs text-gray-400 mt-1">Источник: LDR-BEN-01 / EMP-BEN-01</div>
+      </div>
+      <div class="p-3 bg-gray-50 rounded-lg">
+        <span class="font-medium text-gray-800">Английский язык Skyeng</span><br>
+        50% co-pay. В расчёте — ≈ 30 000 ₽/год (половина среднего курса). <span class="text-yellow-600">[PLACEHOLDER]</span>
+        <div class="text-xs text-gray-400 mt-1">Источник: LDR-BEN-00</div>
+      </div>
+      <div class="p-3 bg-gray-50 rounded-lg">
+        <span class="font-medium text-gray-800">Парковка (Омега Плаза)</span><br>
+        Компенсация парковки рядом с офисом. ≈ 60 000 ₽/год. <span class="text-yellow-600">[PLACEHOLDER]</span>
+        <div class="text-xs text-gray-400 mt-1">Источник: LDR-BEN-00</div>
+      </div>
+      <div class="p-3 bg-gray-50 rounded-lg">
+        <span class="font-medium text-gray-800">FitStars (спорт)</span><br>
+        Онлайн-платформа для тренировок. ≈ 18 000 ₽/год. <span class="text-yellow-600">[PLACEHOLDER]</span>
+        <div class="text-xs text-gray-400 mt-1">Источник: LDR-BEN-00</div>
+      </div>
+      <div class="p-3 bg-gray-50 rounded-lg">
+        <span class="font-medium text-gray-800">BestBenefits</span><br>
+        Платформа льгот (скидки, кэшбек и пр.). ≈ 12 000 ₽/год. <span class="text-yellow-600">[PLACEHOLDER]</span>
+        <div class="text-xs text-gray-400 mt-1">Источник: LDR-BEN-00</div>
+      </div>
+      <div class="p-3 bg-gray-50 rounded-lg">
+        <span class="font-medium text-gray-800">Опционы</span><br>
+        Количество юнитов × текущая оценка цены. Цена — рыночная оценка на дату расчёта. <span class="text-yellow-600">[PLACEHOLDER — ввести вручную]</span>
+        <div class="text-xs text-gray-400 mt-1">Источник: C&B</div>
+      </div>
+      <div class="p-3 bg-gray-50 rounded-lg">
+        <span class="font-medium text-gray-800">Что не включено в расчёт</span><br>
+        Страховка НС (Ингосстрах), библиотеки/РБК Про, мерч, рефералка, командные мероприятия — их сложно оцифровать, но они есть.
+        <div class="text-xs text-gray-400 mt-1">Источник: LDR-BEN-00</div>
+      </div>
+    </div>
+    <p class="text-xs text-gray-400 mt-4">Все суммы бенефитов — оценочные. Подтвердить актуальные значения у HRBP или C&B перед использованием в разговоре с сотрудником.</p>
+  </div>
+</div>
+
+<script>
+  // ============================================================
+  // КОНСТАНТЫ БЕНЕФИТОВ — PLACEHOLDERS
+  // Все значения нужно подтвердить с C&B перед использованием
+  // ============================================================
+  const BENEFITS = {
+    dmc:      100000,  // [PLACEHOLDER] ДМС
+    alter:     24000,  // [PLACEHOLDER] Alter (2000 × 12 сессий)
+    skyeng:    30000,  // [PLACEHOLDER] Skyeng 50% co-pay
+    parking:   60000,  // [PLACEHOLDER] Парковка
+    fitstar:   18000,  // [PLACEHOLDER] FitStars
+    bestben:   12000,  // [PLACEHOLDER] BestBenefits
+  };
+
+  const NDFL = 0.13; // [PLACEHOLDER] Ставка НДФЛ
+
+  let salaryType = 'gross';
+
+  function setSalaryType(type) {
+    salaryType = type;
+    document.getElementById('btn-gross').className = type === 'gross'
+      ? 'px-3 py-1 rounded-md text-sm font-medium transition bg-white shadow text-gray-900'
+      : 'px-3 py-1 rounded-md text-sm font-medium transition text-gray-500';
+    document.getElementById('btn-net').className = type === 'net'
+      ? 'px-3 py-1 rounded-md text-sm font-medium transition bg-white shadow text-gray-900'
+      : 'px-3 py-1 rounded-md text-sm font-medium transition text-gray-500';
+    document.getElementById('salary-type-hint').textContent =
+      type === 'gross' ? 'Все суммы в расчёте — gross' : 'Нетто пересчитывается в gross для сравнения';
+    calc();
+  }
+
+  function toGross(val) {
+    return salaryType === 'net' ? val / (1 - NDFL) : val;
+  }
+
+  function getNum(id) {
+    const v = parseFloat(document.getElementById(id).value);
+    return isNaN(v) || v < 0 ? 0 : v;
+  }
+
+  function isChecked(id) {
+    return document.getElementById(id).checked;
+  }
+
+  function toggleExtBenefits() {
+    const known = isChecked('ext-benefits-known');
+    document.getElementById('ext-benefits-block').classList.toggle('hidden', !known);
+    document.getElementById('ext-benefits-hint').classList.toggle('hidden', known);
+    calc();
+  }
+
+  function fmt(n) {
+    return new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'RUB', maximumFractionDigits: 0 }).format(n);
+  }
+
+  function calc() {
+    // --- DODO ---
+    const dodoSalaryRaw  = getNum('dodo-salary');
+    const dodoSalaryGross = toGross(dodoSalaryRaw) * 12;
+    const dodoBonusGross  = toGross(getNum('dodo-bonus'));
+    const optionsVal      = getNum('dodo-options-qty') * getNum('dodo-options-price');
+
+    let dodoBenefits = 0;
+    if (isChecked('dodo-dmc'))     dodoBenefits += BENEFITS.dmc;
+    if (isChecked('dodo-alter'))   dodoBenefits += BENEFITS.alter;
+    if (isChecked('dodo-skyeng'))  dodoBenefits += BENEFITS.skyeng;
+    if (isChecked('dodo-parking')) dodoBenefits += BENEFITS.parking;
+    if (isChecked('dodo-fitstar')) dodoBenefits += BENEFITS.fitstar;
+    if (isChecked('dodo-bestben')) dodoBenefits += BENEFITS.bestben;
+
+    const dodoTotal = dodoSalaryGross + dodoBonusGross + optionsVal + dodoBenefits;
+
+    // --- EXTERNAL ---
+    const extSalaryGross = toGross(getNum('ext-salary')) * 12;
+    const extBonusGross  = toGross(getNum('ext-bonus'));
+
+    let extBenefits = 0;
+    const extKnown = isChecked('ext-benefits-known');
+    if (extKnown) {
+      if (isChecked('ext-dmc-on'))      extBenefits += getNum('ext-dmc');
+      if (isChecked('ext-psych-on'))    extBenefits += getNum('ext-psych');
+      if (isChecked('ext-sport-on'))    extBenefits += getNum('ext-sport');
+      if (isChecked('ext-learning-on')) extBenefits += getNum('ext-learning');
+      if (isChecked('ext-other-on'))    extBenefits += getNum('ext-other');
+    }
+
+    const extTotal = extSalaryGross + extBonusGross + extBenefits;
+
+    // --- DISPLAY ---
+    const hasData = dodoSalaryRaw > 0 || getNum('ext-salary') > 0;
+
+    if (!hasData) {
+      document.getElementById('result-dodo').textContent = '—';
+      document.getElementById('result-ext').textContent = '—';
+      document.getElementById('result-diff').textContent = '—';
+      document.getElementById('result-diff-label').textContent = '';
+      document.getElementById('result-dodo-sub').textContent = '';
+      document.getElementById('result-ext-sub').textContent = '';
+      document.getElementById('result-conclusion').innerHTML = '<p class="text-sm font-medium text-gray-500">Заполни поля выше для сравнения</p>';
+      document.getElementById('result-conclusion').style.background = '#F9FAFB';
+      return;
+    }
+
+    document.getElementById('result-dodo').textContent = fmt(dodoTotal);
+    document.getElementById('result-dodo-sub').textContent =
+      `оклад ${fmt(dodoSalaryGross)} + премии ${fmt(dodoBonusGross)}` +
+      (optionsVal > 0 ? ` + опционы ${fmt(optionsVal)}` : '') +
+      (dodoBenefits > 0 ? ` + бенефиты ${fmt(dodoBenefits)}` : '');
+
+    document.getElementById('result-ext').textContent =
+      extTotal > 0 ? fmt(extTotal) : '?';
+    document.getElementById('result-ext-sub').textContent =
+      !extKnown ? 'бенефиты не указаны — оценка неполная' :
+      extBenefits > 0 ? `оклад ${fmt(extSalaryGross)} + бенефиты ${fmt(extBenefits)}` : '';
+
+    // Diff
+    if (dodoTotal > 0 && extTotal > 0) {
+      const diff = dodoTotal - extTotal;
+      const diffPct = Math.abs(diff / extTotal * 100).toFixed(1);
+      const diffEl = document.getElementById('result-diff');
+      const labelEl = document.getElementById('result-diff-label');
+      const concl = document.getElementById('result-conclusion');
+
+      if (diff > 0) {
+        diffEl.textContent = `+${diffPct}%`;
+        diffEl.className = 'text-4xl font-bold text-green-600';
+        labelEl.textContent = `В Dodo больше на ${fmt(diff)}`;
+        concl.innerHTML = `<p class="text-base font-semibold text-green-700">✓ В Dodo больше на ${diffPct}% (${fmt(diff)} в год)</p>`;
+        concl.style.background = '#F0FDF4';
+      } else if (diff < 0) {
+        diffEl.textContent = `−${diffPct}%`;
+        diffEl.className = 'text-4xl font-bold text-red-600';
+        labelEl.textContent = `Внешний оффер больше на ${fmt(Math.abs(diff))}`;
+        concl.innerHTML = `<p class="text-base font-semibold text-red-700">Внешний оффер больше на ${diffPct}% (${fmt(Math.abs(diff))} в год)${!extKnown ? ' — бенефиты не учтены' : ''}</p>`;
+        concl.style.background = '#FFF1F2';
+      } else {
+        diffEl.textContent = '=';
+        diffEl.className = 'text-4xl font-bold text-gray-500';
+        labelEl.textContent = 'Суммы равны';
+        concl.innerHTML = '<p class="text-base font-semibold text-gray-600">Совокупный доход одинаковый</p>';
+        concl.style.background = '#F9FAFB';
+      }
+    } else {
+      document.getElementById('result-diff').textContent = '?';
+      document.getElementById('result-diff').className = 'text-4xl font-bold text-gray-400';
+      document.getElementById('result-diff-label').textContent = '';
+      document.getElementById('result-conclusion').innerHTML =
+        '<p class="text-sm text-gray-500">Введи данные для обеих сторон, чтобы увидеть разницу</p>';
+      document.getElementById('result-conclusion').style.background = '#F9FAFB';
+    }
+  }
+</script>
+
+</body>
+</html>

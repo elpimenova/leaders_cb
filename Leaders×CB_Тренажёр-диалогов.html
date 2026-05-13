@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Тренажёр диалогов · Leaders × C&B</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root {
+    --orange: #FF5800;
+    --orange-light: #FFF0E8;
+    --green: #059669;
+    --green-light: #ECFDF5;
+    --red: #DC2626;
+    --red-light: #FEF2F2;
+    --yellow-light: #FEFCE8;
+    --dark: #111827;
+    --gray: #6B7280;
+    --border: #E5E7EB;
+    --bg: #F9FAFB;
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', sans-serif; background: var(--bg); color: var(--dark); }
+
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* Choice buttons */
+  .choice-btn {
+    width: 100%; text-align: left; padding: 16px 20px;
+    border: 2px solid var(--border); border-radius: 12px;
+    background: white; cursor: pointer; transition: all 0.15s;
+    font-size: 15px; line-height: 1.5; color: var(--dark);
+    margin-bottom: 10px;
+  }
+  .choice-btn:hover:not(:disabled) { border-color: var(--orange); background: var(--orange-light); }
+  .choice-btn.correct { border-color: var(--green); background: var(--green-light); }
+  .choice-btn.wrong { border-color: var(--red); background: var(--red-light); }
+  .choice-btn.warning { border-color: #D97706; background: #FFFBEB; }
+  .choice-btn:disabled { cursor: default; }
+
+  /* Feedback box */
+  .feedback-box { border-radius: 10px; padding: 16px 20px; margin-top: 16px; font-size: 14px; line-height: 1.6; }
+  .feedback-correct { background: var(--green-light); border-left: 4px solid var(--green); }
+  .feedback-wrong { background: var(--red-light); border-left: 4px solid var(--red); }
+  .feedback-warning { background: #FFFBEB; border-left: 4px solid #D97706; }
+
+  /* Progress bar */
+  .progress-bar { height: 4px; background: #E5E7EB; border-radius: 2px; }
+  .progress-fill { height: 100%; background: var(--orange); border-radius: 2px; transition: width 0.4s; }
+
+  /* Scenario card in menu */
+  .scenario-card {
+    background: white; border: 2px solid var(--border); border-radius: 12px;
+    padding: 20px; cursor: pointer; transition: all 0.15s;
+  }
+  .scenario-card:hover:not(.locked) { border-color: var(--orange); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(255,88,0,0.1); }
+  .scenario-card.done { border-color: var(--green); }
+  .scenario-card.locked { cursor: not-allowed; opacity: 0.5; }
+
+  /* Speech bubble */
+  .speech-bubble {
+    background: white; border: 1px solid var(--border);
+    border-radius: 16px 16px 16px 4px;
+    padding: 16px 20px; font-size: 15px; line-height: 1.6;
+    position: relative; margin-bottom: 4px;
+  }
+  .speaker-label { font-size: 12px; font-weight: 600; color: var(--gray); margin-bottom: 6px; }
+
+  /* Step indicator */
+  .step-dot { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; }
+  .step-dot.active { background: var(--orange); color: white; }
+  .step-dot.done { background: var(--green); color: white; }
+  .step-dot.pending { background: #E5E7EB; color: var(--gray); }
+
+  /* Tag badge */
+  .tag { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 12px; font-weight: 500; }
+
+  /* Diploma */
+  .diploma { background: linear-gradient(135deg, #FFF7ED 0%, #FEF3C7 100%); border: 2px solid #FCD34D; border-radius: 16px; padding: 32px; text-align: center; }
+
+  @media (max-width: 640px) {
+    .choice-btn { font-size: 14px; padding: 14px 16px; }
+  }
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- ═══════════════════════════════════ PLACEHOLDER WARNING ═══════════ -->
+<div class="bg-yellow-50 border-b-2 border-yellow-300 px-4 py-3 text-center text-sm text-yellow-800 print:hidden">
+  <strong>[PLACEHOLDER]</strong> Цифры в сценариях (CR, % пересмотра, вилки) нужно сверить с C&B перед использованием с командой.
+</div>
+
+<!-- ════════════════════════════════════════ MENU SCREEN ══════════════ -->
+<div id="screen-menu" class="screen active max-w-3xl mx-auto px-4 py-8">
+
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex items-center gap-3 mb-2">
+      <div class="w-9 h-9 rounded-xl flex items-center justify-center text-white text-lg" style="background:var(--orange)">💬</div>
+      <h1 class="text-2xl font-bold">Тренажёр диалогов</h1>
+    </div>
+    <p class="text-gray-500 text-sm">8 сценариев из реальных ситуаций. Проходи по одному — получай персональный разбор.</p>
+
+    <!-- Overall progress -->
+    <div class="mt-5 bg-white rounded-xl border border-gray-200 p-4">
+      <div class="flex justify-between items-center mb-2">
+        <span class="text-sm font-medium text-gray-700">Пройдено сценариев</span>
+        <span class="text-sm font-semibold" id="menu-progress-label">0 из 8</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="menu-progress-bar" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scenario grid -->
+  <div class="grid gap-3" id="scenario-list">
+
+    <!-- S2 — fully playable -->
+    <div class="scenario-card" id="card-s2" onclick="startScenario('s2')">
+      <div class="flex items-start justify-between gap-3">
+        <div class="flex-1">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="tag bg-orange-100 text-orange-700">S2</span>
+            <span class="tag bg-blue-50 text-blue-700">CR / вилки</span>
+            <span class="text-xs text-gray-400 ml-auto" id="done-s2"></span>
+          </div>
+          <h3 class="font-semibold text-gray-900">«Почему мне 3%, а Маше 10%?»</h3>
+          <p class="text-sm text-gray-500 mt-1">Сотрудник узнал о чужом повышении. Учит: объяснение через CR и вилку, без сравнений с коллегами.</p>
+        </div>
+        <div class="flex-shrink-0 text-2xl" id="icon-s2">→</div>
+      </div>
+    </div>
+
+    <!-- S1 — locked -->
+    <div class="scenario-card locked">
+      <div class="flex items-start gap-3">
+        <div class="flex-1">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="tag bg-gray-100 text-gray-500">S1</span>
+            <span class="tag bg-gray-50 text-gray-400">контр-оффер</span>
+          </div>
+          <h3 class="font-semibold text-gray-400">«У меня оффер +20%, ответ до пятницы»</h3>
+          <p class="text-sm text-gray-400 mt-1">Скоро</p>
+        </div>
+        <div class="text-gray-300 text-xl">🔒</div>
+      </div>
+    </div>
+
+    <!-- S3 -->
+    <div class="scenario-card locked">
+      <div class="flex items-start gap-3">
+        <div class="flex-1">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="tag bg-gray-100 text-gray-500">S3</span>
+            <span class="tag bg-gray-50 text-gray-400">сложный разговор</span>
+          </div>
+          <h3 class="font-semibold text-gray-400">«Не повышаю — как сказать?»</h3>
+          <p class="text-sm text-gray-400 mt-1">Скоро</p>
+        </div>
+        <div class="text-gray-300 text-xl">🔒</div>
+      </div>
+    </div>
+
+    <!-- S4 -->
+    <div class="scenario-card locked">
+      <div class="flex items-start gap-3">
+        <div class="flex-1">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="tag bg-gray-100 text-gray-500">S4</span>
+            <span class="tag bg-gray-50 text-gray-400">ИПР / обучение</span>
+          </div>
+          <h3 class="font-semibold text-gray-400">«Прошу повышение за обучение»</h3>
+          <p class="text-sm text-gray-400 mt-1">Скоро</p>
+        </div>
+        <div class="text-gray-300 text-xl">🔒</div>
+      </div>
+    </div>
+
+    <!-- S5 -->
+    <div class="scenario-card locked">
+      <div class="flex items-start gap-3">
+        <div class="flex-1">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="tag bg-gray-100 text-gray-500">S5</span>
+            <span class="tag bg-gray-50 text-gray-400">испытательный срок</span>
+          </div>
+          <h3 class="font-semibold text-gray-400">«Прошёл ИС — где обещанный пересмотр?»</h3>
+          <p class="text-sm text-gray-400 mt-1">Скоро</p>
+        </div>
+        <div class="text-gray-300 text-xl">🔒</div>
+      </div>
+    </div>
+
+    <!-- S6 -->
+    <div class="scenario-card locked">
+      <div class="flex items-start gap-3">
+        <div class="flex-1">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="tag bg-gray-100 text-gray-500">S6</span>
+            <span class="tag bg-gray-50 text-gray-400">выгорание</span>
+          </div>
+          <h3 class="font-semibold text-gray-400">«Я тяну, но мне тяжело»</h3>
+          <p class="text-sm text-gray-400 mt-1">Скоро</p>
+        </div>
+        <div class="text-gray-300 text-xl">🔒</div>
+      </div>
+    </div>
+
+    <!-- S7 -->
+    <div class="scenario-card locked">
+      <div class="flex items-start gap-3">
+        <div class="flex-1">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="tag bg-gray-100 text-gray-500">S7</span>
+            <span class="tag bg-gray-50 text-gray-400">Total Rewards</span>
+          </div>
+          <h3 class="font-semibold text-gray-400">«У меня оффер — что вы предложите?»</h3>
+          <p class="text-sm text-gray-400 mt-1">Скоро</p>
+        </div>
+        <div class="text-gray-300 text-xl">🔒</div>
+      </div>
+    </div>
+
+    <!-- S8 -->
+    <div class="scenario-card locked">
+      <div class="flex items-start gap-3">
+        <div class="flex-1">
+          <div class="flex items-center gap-2 mb-1">
+            <span class="tag bg-gray-100 text-gray-500">S8</span>
+            <span class="tag bg-gray-50 text-gray-400">опционы</span>
+          </div>
+          <h3 class="font-semibold text-gray-400">«Объясни мне опционы — это вообще реально?»</h3>
+          <p class="text-sm text-gray-400 mt-1">Скоро</p>
+        </div>
+        <div class="text-gray-300 text-xl">🔒</div>
+      </div>
+    </div>
+
+  </div><!-- /scenario-list -->
+
+  <!-- Diploma (hidden until all done) -->
+  <div id="diploma-block" class="hidden mt-8 diploma">
+    <div class="text-4xl mb-3">🏅</div>
+    <h2 class="text-xl font-bold text-yellow-900 mb-2">Все 8 сценариев пройдены</h2>
+    <p class="text-yellow-800 text-sm mb-4">Ты разобрал все типовые ситуации. Ниже — персональный набор сильных ходов и пробелов по всем сценариям.</p>
+    <button onclick="showDiploma()" class="bg-yellow-600 hover:bg-yellow-700 text-white font-semibold px-6 py-2 rounded-lg transition">Посмотреть итог</button>
+  </div>
+
+</div><!-- /menu -->
+
+
+<!-- ══════════════════════════════════ SCENARIO SCREEN ═══════════════ -->
+<div id="screen-scenario" class="screen max-w-2xl mx-auto px-4 py-6">
+
+  <!-- Top nav -->
+  <div class="flex items-center justify-between mb-6">
+    <button onclick="goMenu()" class="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800 transition">
+      ← Назад к меню
+    </button>
+    <div class="text-xs text-gray-400" id="scenario-label-top"></div>
+  </div>
+
+  <!-- Step indicator -->
+  <div class="flex items-center gap-2 mb-6" id="step-indicator">
+    <div class="step-dot" id="dot-1">1</div>
+    <div class="flex-1 h-0.5 bg-gray-200" id="line-1"></div>
+    <div class="step-dot pending" id="dot-2">2</div>
+    <div class="flex-1 h-0.5 bg-gray-200" id="line-2"></div>
+    <div class="step-dot pending" id="dot-3">3</div>
+    <div class="flex-1 h-0.5 bg-gray-200" id="line-3"></div>
+    <div class="step-dot pending" id="dot-end">✓</div>
+  </div>
+
+  <!-- Content area -->
+  <div id="scenario-content"></div>
+
+</div><!-- /scenario -->
+
+
+<!-- ══════════════════════════════════ RESULT SCREEN ════════════════ -->
+<div id="screen-result" class="screen max-w-2xl mx-auto px-4 py-6">
+
+  <div class="flex items-center justify-between mb-6">
+    <button onclick="goMenu()" class="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-800 transition">← К меню</button>
+    <span class="text-sm text-gray-400" id="result-scenario-label"></span>
+  </div>
+
+  <div id="result-content"></div>
+
+  <div class="mt-6 grid grid-cols-2 gap-3">
+    <button onclick="restartScenario()" class="border-2 border-gray-200 hover:border-gray-300 bg-white text-gray-700 font-medium py-3 rounded-xl transition">Пройти ещё раз</button>
+    <button onclick="goMenu()" class="text-white font-semibold py-3 rounded-xl transition" style="background:var(--orange)">К следующему сценарию →</button>
+  </div>
+
+</div><!-- /result -->
+
+
+<!-- ══════════════════════════════════════════ SCRIPTS ═══════════════ -->
+<script>
+
+// ──────────────────── STORAGE ────────────────────
+let _mem = {};
+const store = {
+  get: (k) => { try { return JSON.parse(localStorage.getItem(k)); } catch { return _mem[k] ?? null; } },
+  set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch { _mem[k] = v; } }
+};
+
+// ──────────────────── STATE ────────────────────
+let progress = store.get('trn_progress') || {};
+let currentScenario = null;
+let currentStep = 0;
+let stepResults = []; // { choice, quality } per step
+
+function saveProgress() { store.set('trn_progress', progress); }
+
+// ──────────────────── MENU ─────────────────────
+function updateMenu() {
+  const done = Object.values(progress).filter(Boolean).length;
+  document.getElementById('menu-progress-label').textContent = `${done} из 8`;
+  document.getElementById('menu-progress-bar').style.width = `${done / 8 * 100}%`;
+
+  // S2 status
+  if (progress.s2) {
+    document.getElementById('card-s2').classList.add('done');
+    document.getElementById('icon-s2').textContent = '✓';
+    document.getElementById('icon-s2').style.color = 'var(--green)';
+    document.getElementById('done-s2').textContent = 'пройден';
+    document.getElementById('done-s2').style.color = 'var(--green)';
+  }
+
+  if (done === 8) document.getElementById('diploma-block').classList.remove('hidden');
+}
+
+function startScenario(id) {
+  currentScenario = id;
+  currentStep = 0;
+  stepResults = [];
+  showScreen('screen-scenario');
+  renderScenarioStart();
+}
+
+function goMenu() {
+  showScreen('screen-menu');
+  updateMenu();
+}
+
+function restartScenario() {
+  startScenario(currentScenario);
+}
+
+// ──────────────────── SCREENS ──────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// ──────────────────── STEP DOTS ────────────────
+function updateDots(step) {
+  [1,2,3].forEach(i => {
+    const dot = document.getElementById(`dot-${i}`);
+    dot.className = 'step-dot ' + (i < step ? 'done' : i === step ? 'active' : 'pending');
+    dot.textContent = i < step ? '✓' : i;
+  });
+  const endDot = document.getElementById('dot-end');
+  endDot.className = 'step-dot ' + (step > 3 ? 'done' : 'pending');
+  endDot.textContent = step > 3 ? '✓' : '✓';
+}
+
+// ══════════════════════════════════════════════
+//  SCENARIO DATA — S2
+// ══════════════════════════════════════════════
+const SCENARIOS = {
+  s2: {
+    id: 's2',
+    tag: 'S2 · CR / вилки',
+    title: '«Почему мне 3%, а Маше 10%?»',
+
+    context: {
+      title: 'Ситуация',
+      employee: 'Антон, D5, 2,5 года в компании, CR 95% [PLACEHOLDER]. Последний пересмотр — 7 месяцев назад, +3%.',
+      situation: `Антон пишет в Slack в конце рабочего дня:
+
+«Слушай, мне тут сказали, что Маша в этом цикле получила 10%, а я — 3%. Это вообще как? Мы на одном уровне, делаем похожие вещи. Хочу понять.»`,
+      note: `💡 Контекст из опроса на 1112 человек: одна из самых частых болей — «почему коллеге больше». Лидер, который начинает объяснять через сравнение, создаёт ещё большую проблему.`
+    },
+
+    steps: [
+      // ───── ХОД 1 ─────
+      {
+        stepNum: 1,
+        prompt: 'Антон ждёт. Что говоришь первым делом?',
+        choices: [
+          {
+            id: 'a', quality: 'wrong',
+            text: '«Слушай, ну у Маши просто другая ситуация была — у неё CR был низкий, поэтому и больше. У тебя всё нормально.»',
+            feedback: {
+              title: '🔴 Стоп.',
+              body: 'Ты только что нарушил конфиденциальность — рассказал про CR Маши. Теперь Антон знает не только что Маша получила больше, но и почему. Это путь к сплетням, обидам и вопросу «а почему у Маши был низкий CR и никто ничего не делал?». Разговор усложнился вдвое.',
+              class: 'feedback-wrong'
+            }
+          },
+          {
+            id: 'b', quality: 'correct',
+            text: '«Антон, я слышу — это неприятно. Я не могу говорить о зарплате Маши, это её личное. Давай разберём твою ситуацию: я объясню, как считается пересмотр и почему у тебя вышло именно 3%. Когда тебе удобно поговорить голосом?»',
+            feedback: {
+              title: '✅ Правильный ход.',
+              body: 'Ты мягко, но чётко закрыл тему чужой зарплаты — и сразу предложил конструктив. «Давай разберём твою ситуацию» — это уважение. Предложение перейти в голос снижает риск недопонимания в переписке.',
+              class: 'feedback-correct'
+            }
+          },
+          {
+            id: 'c', quality: 'warning',
+            text: '«Ну, решения по пересмотру принимаются по множеству факторов, это сложно в двух словах объяснить...»',
+            feedback: {
+              title: '🟡 Уклонение.',
+              body: 'Этот ответ ничего не объясняет и создаёт ощущение, что ты что-то скрываешь. «Сложно объяснить» — это не ответ, это способ отделаться. Антон уйдёт с ощущением, что его не уважают.',
+              class: 'feedback-warning'
+            }
+          }
+        ]
+      },
+
+      // ───── ХОД 2 ─────
+      {
+        stepNum: 2,
+        prompt: 'Вы созвонились. Антон не успокоился:',
+        employeeLine: '«Хорошо, но я хочу понять логику. Получается, я хорошо работал, а получил меньше. Как это вообще объяснить? Мне кажется, это несправедливо.»',
+        choices: [
+          {
+            id: 'a', quality: 'warning',
+            text: '«Ты прав, это звучит несправедливо. Я постараюсь что-то сделать на следующий цикл.»',
+            feedback: {
+              title: '🟡 Ловушка.',
+              body: 'Слово «несправедливо» — это эмоциональная рамка, и ты в неё зашёл. «Постараюсь что-то сделать» — это обещание без основания. Через три месяца Антон придёт с «ну ты же обещал».',
+              class: 'feedback-warning'
+            }
+          },
+          {
+            id: 'b', quality: 'correct',
+            text: '«Антон, давай объясню логику — без оценочных суждений. Пересмотр зависит от двух вещей: CR — это позиция твоей зарплаты относительно рынка по твоей роли, и от изменения ответственности. У тебя CR был около 95% [PLACEHOLDER] — ты в рынке, это хорошо. Это и есть причина, почему пересмотр был небольшой: система не видит риска потери. Это не оценка тебя как человека.»',
+            feedback: {
+              title: '✅ Объяснение через систему.',
+              body: 'Ты объяснил логику без сравнения с Машей и без слова «справедливо». «Система не видит риска потери» — это честно и снимает личную обиду. Антон понимает, что 3% — это не оценка его работы, а позиция в вилке.',
+              class: 'feedback-correct'
+            }
+          },
+          {
+            id: 'c', quality: 'wrong',
+            text: '«Справедливость — сложная тема. У каждого своя ситуация, и мы стараемся учитывать всё...»',
+            feedback: {
+              title: '🔴 Уход от ответа.',
+              body: 'Это самый неудачный вариант. «Справедливость — сложная тема» — это корпоративный язык, которого Антон терпеть не может. Ты не объяснил ничего, но создал ощущение, что прячешься за словами.',
+              class: 'feedback-wrong'
+            }
+          }
+        ]
+      },
+
+      // ───── ХОД 3 ─────
+      {
+        stepNum: 3,
+        prompt: 'Антон слушает. Напряжение спало. Финальный вопрос:',
+        employeeLine: '«Окей, понял про систему. Но что мне реально сделать, чтобы в следующем цикле было по-другому?»',
+        choices: [
+          {
+            id: 'a', quality: 'warning',
+            text: '«Продолжай работать в том же духе, и мы обязательно это увидим в следующем цикле.»',
+            feedback: {
+              title: '🟡 Почти, но не то.',
+              body: 'Это доброжелательно, но бессодержательно. «Мы обязательно это увидим» — звучит как обещание, которое ты не контролируешь. Антон уйдёт без конкретного плана.',
+              class: 'feedback-warning'
+            }
+          },
+          {
+            id: 'b', quality: 'wrong',
+            text: '«Честно скажу: если хочешь больше денег быстро, стоит смотреть на другие предложения на рынке.»',
+            feedback: {
+              title: '🔴 Стоп. Это не ответ лидера.',
+              body: 'Ты только что отправил своего сотрудника искать оффер. Через месяц Антон придёт с оффером +25% — и ты сам создал эту ситуацию. Это именно тот паттерн, который описывают в опросах: «ЗП подняли только тем, кто угрожал уволиться».',
+              class: 'feedback-wrong'
+            }
+          },
+          {
+            id: 'c', quality: 'correct',
+            text: '«Давай прямо сейчас зафиксируем в ИПР. Три вещи: [1] какие проекты с измеримым результатом ты закроешь до следующего цикла, [2] где расширяется твоя ответственность, [3] к какой дате [PLACEHOLDER: следующий цикл] у нас должны быть артефакты. Я буду готов защищать твой пересмотр с этими фактами.»',
+            feedback: {
+              title: '✅ Сильный финал.',
+              body: 'Конкретно, проверяемо и без обещаний. «Я буду готов защищать» — это ответственность лидера. Антон уходит с планом, а не с ощущением пустого разговора.',
+              class: 'feedback-correct'
+            }
+          }
+        ]
+      }
+    ]
+  }
+};
+
+// ══════════════════════════════════════════════
+//  RENDER ENGINE
+// ══════════════════════════════════════════════
+
+function renderScenarioStart() {
+  const s = SCENARIOS[currentScenario];
+  document.getElementById('scenario-label-top').textContent = s.tag;
+  updateDots(1);
+
+  const c = s.context;
+  document.getElementById('scenario-content').innerHTML = `
+    <div class="bg-white border border-gray-200 rounded-2xl p-6 mb-5">
+      <div class="flex items-center gap-2 mb-4">
+        <span class="tag" style="background:var(--orange-light);color:var(--orange)">Ситуация</span>
+        <h2 class="font-bold text-lg text-gray-900">${s.title}</h2>
+      </div>
+      <div class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Контекст</div>
+      <p class="text-sm text-gray-600 mb-4 p-3 bg-gray-50 rounded-lg">${c.employee}</p>
+      <div class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Что происходит</div>
+      <div class="speech-bubble whitespace-pre-line">${c.situation}</div>
+      <div class="mt-4 p-3 rounded-xl text-sm text-gray-600" style="background:var(--orange-light)">${c.note}</div>
+    </div>
+    <button onclick="renderStep(1)" class="w-full py-3 rounded-xl text-white font-semibold transition" style="background:var(--orange)">
+      Начать диалог →
+    </button>
+  `;
+}
+
+function renderStep(stepNum) {
+  currentStep = stepNum;
+  updateDots(stepNum);
+  const s = SCENARIOS[currentScenario];
+  const step = s.steps[stepNum - 1];
+
+  let employeeHTML = '';
+  if (step.employeeLine) {
+    employeeHTML = `
+      <div class="mb-4">
+        <div class="speaker-label">Антон</div>
+        <div class="speech-bubble">${step.employeeLine}</div>
+      </div>
+    `;
+  }
+
+  const choicesHTML = step.choices.map(ch => `
+    <button class="choice-btn" id="choice-${ch.id}" onclick="selectChoice('${ch.id}', ${stepNum})">
+      ${ch.text}
+    </button>
+  `).join('');
+
+  document.getElementById('scenario-content').innerHTML = `
+    <div class="mb-4">
+      <div class="flex items-center gap-2 mb-4">
+        <span class="tag bg-gray-100 text-gray-600">Ход ${stepNum} из 3</span>
+      </div>
+      ${employeeHTML}
+      <div class="text-sm font-semibold text-gray-700 mb-3">${step.prompt}</div>
+      ${choicesHTML}
+    </div>
+    <div id="feedback-area"></div>
+  `;
+}
+
+function selectChoice(choiceId, stepNum) {
+  const s = SCENARIOS[currentScenario];
+  const step = s.steps[stepNum - 1];
+  const chosen = step.choices.find(c => c.id === choiceId);
+
+  stepResults.push({ stepNum, choiceId, quality: chosen.quality, text: chosen.text });
+
+  // Disable all buttons and highlight
+  step.choices.forEach(ch => {
+    const btn = document.getElementById(`choice-${ch.id}`);
+    btn.disabled = true;
+    if (ch.id === choiceId) {
+      btn.classList.add(ch.quality === 'correct' ? 'correct' : ch.quality === 'wrong' ? 'wrong' : 'warning');
+    } else {
+      btn.style.opacity = '0.4';
+    }
+  });
+
+  // Show feedback
+  const fb = chosen.feedback;
+  document.getElementById('feedback-area').innerHTML = `
+    <div class="feedback-box ${fb.class}">
+      <div class="font-semibold mb-1">${fb.title}</div>
+      <div>${fb.body}</div>
+    </div>
+    <div class="mt-4">
+      ${stepNum < 3
+        ? `<button onclick="renderStep(${stepNum + 1})" class="w-full py-3 rounded-xl text-white font-semibold transition" style="background:var(--orange)">Следующий ход →</button>`
+        : `<button onclick="showResult()" class="w-full py-3 rounded-xl text-white font-semibold transition" style="background:var(--orange)">Посмотреть разбор →</button>`
+      }
+    </div>
+  `;
+
+  window.scrollTo({ top: document.getElementById('feedback-area').offsetTop - 20, behavior: 'smooth' });
+}
+
+// ══════════════════════════════════════════════
+//  RESULT SCREEN
+// ══════════════════════════════════════════════
+
+function showResult() {
+  const s = SCENARIOS[currentScenario];
+  progress[currentScenario] = true;
+  saveProgress();
+
+  const correct = stepResults.filter(r => r.quality === 'correct').length;
+  const wrong   = stepResults.filter(r => r.quality === 'wrong').length;
+  const warning = stepResults.filter(r => r.quality === 'warning').length;
+
+  let scoreColor, scoreLabel, scoreEmoji;
+  if (correct === 3) {
+    scoreColor = 'text-green-700'; scoreLabel = 'Идеально'; scoreEmoji = '🏆';
+  } else if (correct === 2) {
+    scoreColor = 'text-orange-600'; scoreLabel = 'Хорошо'; scoreEmoji = '💪';
+  } else if (correct === 1) {
+    scoreColor = 'text-yellow-600'; scoreLabel = 'Есть куда расти'; scoreEmoji = '🔄';
+  } else {
+    scoreColor = 'text-red-600'; scoreLabel = 'Попробуй ещё раз'; scoreEmoji = '📖';
+  }
+
+  // Per-step breakdown
+  const stepBreakdown = stepResults.map(r => {
+    const stepObj = s.steps[r.stepNum - 1];
+    const ch = stepObj.choices.find(c => c.id === r.choiceId);
+    const icon = r.quality === 'correct' ? '✅' : r.quality === 'wrong' ? '🔴' : '🟡';
+    return `
+      <div class="p-4 bg-gray-50 rounded-xl mb-3">
+        <div class="flex items-start gap-2">
+          <span class="text-lg mt-0.5">${icon}</span>
+          <div>
+            <div class="text-xs font-semibold text-gray-400 mb-1">Ход ${r.stepNum}</div>
+            <div class="text-sm text-gray-700 mb-2">"${ch.text}"</div>
+            <div class="text-sm text-gray-500">${ch.feedback.body}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  // Takeaway checklist
+  const takeaway = `
+    <div class="border border-gray-200 rounded-xl p-5 mt-2">
+      <div class="font-semibold text-gray-800 mb-3">📋 Чек-лист из этого сценария</div>
+      <div class="space-y-2 text-sm text-gray-700">
+        <div class="flex gap-2"><span class="text-green-600 font-bold mt-0.5">✓</span><span>Зарплату коллеги — никогда не обсуждаем, даже чтобы «помочь» с объяснением</span></div>
+        <div class="flex gap-2"><span class="text-green-600 font-bold mt-0.5">✓</span><span>Объясняй через логику системы: CR, вилка, ответственность — не через сравнение людей</span></div>
+        <div class="flex gap-2"><span class="text-green-600 font-bold mt-0.5">✓</span><span>Слово «справедливо» — не используем. Это моральная рамка, в которой у тебя нет победы</span></div>
+        <div class="flex gap-2"><span class="text-green-600 font-bold mt-0.5">✓</span><span>Финал разговора — ИПР с конкретными шагами, датой и твоей готовностью защищать на калибровке</span></div>
+        <div class="flex gap-2"><span class="text-green-600 font-bold mt-0.5">✓</span><span>«Я постараюсь» без фактов — это не обещание, это разочарование отложенного действия</span></div>
+      </div>
+      <div class="mt-4 pt-4 border-t border-gray-100 text-xs text-gray-400">
+        Источники: LDR-SAL-01, LDR-SAL-02, LDR-SAL-03, LDR-CH-08 · Гайд: M0.3 (ЗП-цикл)
+      </div>
+    </div>
+  `;
+
+  document.getElementById('result-scenario-label').textContent = s.tag;
+  document.getElementById('result-content').innerHTML = `
+    <!-- Score -->
+    <div class="bg-white border border-gray-200 rounded-2xl p-6 mb-5 text-center">
+      <div class="text-4xl mb-2">${scoreEmoji}</div>
+      <div class="text-2xl font-bold ${scoreColor} mb-1">${scoreLabel}</div>
+      <div class="text-sm text-gray-500 mb-4">Правильных ходов: ${correct} из 3</div>
+      <div class="flex justify-center gap-6 text-sm">
+        <div class="text-center"><div class="font-bold text-green-600 text-lg">${correct}</div><div class="text-gray-400">сильных</div></div>
+        <div class="text-center"><div class="font-bold text-yellow-600 text-lg">${warning}</div><div class="text-gray-400">рискованных</div></div>
+        <div class="text-center"><div class="font-bold text-red-500 text-lg">${wrong}</div><div class="text-gray-400">проблемных</div></div>
+      </div>
+    </div>
+
+    <!-- Step breakdown -->
+    <div class="mb-2">
+      <div class="font-semibold text-gray-800 mb-3">Разбор по ходам</div>
+      ${stepBreakdown}
+    </div>
+
+    <!-- Takeaway -->
+    ${takeaway}
+  `;
+
+  showScreen('screen-result');
+}
+
+// ══════════════════════════════════════════════
+//  DIPLOMA
+// ══════════════════════════════════════════════
+
+function showDiploma() {
+  alert('Диплом — в финальной версии после добавления всех 8 сценариев.');
+}
+
+// ──────────── INIT ───────────────
+updateMenu();
+</script>
+</body>
+</html>
